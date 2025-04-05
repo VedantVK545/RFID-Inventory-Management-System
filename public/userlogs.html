@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Activity Logs</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+</head>
+<body>
+    <div class="dashboard">
+        <button class="menu-toggle" id="menuToggle">
+            <span class="material-icons-round">menu</span>
+        </button>
+        
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>RFID Inventory</h3>
+                <p id="username">Loading...</p>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="/" class="menu-item">
+                    <span class="material-icons-round">dashboard</span> Dashboard
+                </a>
+                
+                <a href="/inventory" class="menu-item">
+                    <span class="material-icons-round">inventory_2</span> Inventory
+                </a>
+                
+                <a href="/rfid" class="menu-item">
+                    <span class="material-icons-round">rss_feed</span> RFID Devices
+                </a>
+                
+                <a href="/receiptlogs" class="menu-item">
+                    <span class="material-icons-round">receipt_long</span> Transactions
+                </a>
+                
+                <a href="/usercores" class="menu-item">
+                    <span class="material-icons-round">group</span> Users
+                </a>
+                
+                <a href="/userlogs" class="menu-item active">
+                    <span class="material-icons-round">visibility</span> Activity Logs
+                </a>
+                
+                <a href="logout" class="menu-item">
+                    <span class="material-icons-round">logout</span> Logout
+                </a>
+            </div>
+        </div>
+        
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">User Activity Logs</h1>
+            <div class="breadcrumb">
+                <div class="breadcrumb-item"><a href="/">Home</a></div>
+                <div class="breadcrumb-item">Activity Logs</div>
+            </div>
+        </div>
+    
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">System Activity</h2>
+                <div>
+                    <a href="/exportlogs" class="btn btn-outline">
+                        <span class="material-icons-round">download</span>
+                        Export Logs
+                    </a>
+                    <button id="clearLogsButton" class="btn btn-outline">
+                        <span class="material-icons-round">delete</span>
+                        Clear Logs
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div style="overflow-x: auto;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Activity</th>
+                                <th>IP Address</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2rem;">
+                                    <span class="material-icons-round" style="font-size: 3rem; color: var(--text-tertiary); display: block; margin-bottom: 1rem;">search_off</span>
+                                    No user logs found.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/js/userinfo.js"></script>
+<script src="/js/toggle.js"></script>
+<script>
+    async function fetchLogs() {
+        try {
+            const response = await fetch('/getlogs');
+            if (!response.ok) {
+                throw new Error('Failed to fetch logs');
+            }
+            const logs = await response.json();
+            const tableBody = document.querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            if (logs.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem;">
+                            <span class="material-icons-round" style="font-size: 3rem; color: var(--text-tertiary); display: block; margin-bottom: 1rem;">search_off</span>
+                            No user logs found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${log._id}</td>
+                    <td>${log.user}</td>
+                    <td>${log.action}</td>
+                    <td>${log.ipAddress || 'N/A'}</td>
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } catch (err) {
+            console.error('Error fetching logs:', err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchLogs);
+    document.getElementById('clearLogsButton').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to clear all logs?')) {
+            try {
+                const response = await fetch('/clearlogs', { method: 'DELETE' });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    location.reload(); // Reload the page to update the logs table
+                } else {
+                    alert('Error clearing logs: ' + result.error);
+                }
+            } catch (err) {
+                console.error('Error clearing logs:', err);
+                alert('An unexpected error occurred.');
+            }
+        }
+    });
+</script>
+</html>

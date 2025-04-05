@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POST Request Example</title>
+</head>
+<body>
+    <h1>Send POST Request</h1>
+    <button id="sendRequest">Send Request</button>
+
+    <script>
+        document.getElementById('sendRequest').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:3000/createitemx', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        tag: 10, 
+                        performedBy: 'device' // Include performedBy field
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response:', data);
+                    alert('Request successful!');
+                } else {
+                    console.error('Error:', response.statusText);
+                    alert('Request failed!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred!');
+            }
+        });
+    </script>
+</body>
+</html>

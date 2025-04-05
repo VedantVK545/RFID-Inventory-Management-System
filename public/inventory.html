@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+    <title>Inventory Management</title>
+</head>
+<body>
+    <div class="dashboard">
+        <button class="menu-toggle" id="menuToggle">
+            <span class="material-icons-round">menu</span>
+        </button>
+        
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>RFID Inventory</h3>
+                <p id="username">Loading...</p>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="/" class="menu-item">
+                    <span class="material-icons-round">dashboard</span> Dashboard
+                </a>
+                
+                <a href="/inventory" class="menu-item active">
+                    <span class="material-icons-round">inventory_2</span> Inventory
+                </a>
+                
+                <a href="/rfid" class="menu-item">
+                    <span class="material-icons-round">rss_feed</span> RFID Devices
+                </a>
+                
+                <a href="/receiptlogs" class="menu-item">
+                    <span class="material-icons-round">receipt_long</span> Transactions
+                </a>
+                
+                <a href="/usercores" class="menu-item">
+                    <span class="material-icons-round">group</span> Users
+                </a>
+                
+                <a href="/userlogs" class="menu-item">
+                    <span class="material-icons-round">visibility</span> Activity Logs
+                </a>
+                
+                <a href="logout" class="menu-item">
+                    <span class="material-icons-round">logout</span> Logout
+                </a>
+            </div>
+        </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Inventory Management</h1>
+            <div class="breadcrumb">
+                <div class="breadcrumb-item"><a href="/">Home</a></div>
+                <div class="breadcrumb-item">Inventory</div>
+            </div>
+        </div>
+    
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Inventory Items</h2>
+                <div>
+                    <button id="openAddItemModal" class="btn btn-primary">
+                        <span class="material-icons-round">add</span>
+                        Add New Item
+                    </button>
+                    <a href="/exportinventory" class="btn btn-outline">
+                        <span class="material-icons-round">download</span>
+                        Export
+                    </a>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div style="overflow-x: auto;">
+                    <table class="table" id="inventoryTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Tag ID</th>
+                                <th>Quantity</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2rem;" id="noItemsRow">
+                                    <span class="material-icons-round" style="font-size: 3rem; color: var(--text-tertiary); display: block; margin-bottom: 1rem;">inventory_2</span>
+                                    No inventory items found. Add your first item using the button above.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Item Modal -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Item</h3>
+                <button type="button" class="close" id="closeAddItemModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addItemForm">
+                    <div class="form-group">
+                        <label for="itemTag">Tag ID</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">qr_code</span>
+                            <input type="text" id="itemTag" name="tag" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="closeAddItemModalBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Item</h3>
+                <button type="button" class="close" id="closeEditItemModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editItemForm">
+                    <div class="form-group">
+                        <label for="editItemName">Name</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">label</span>
+                            <input type="text" id="editItemName" name="name" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemTag">Tag ID</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">qr_code</span>
+                            <input type="text" id="editItemTag" name="tag" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemQuantity">Quantity</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">inventory</span>
+                            <input type="number" id="editItemQuantity" name="quantity" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemCategory">Category</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">category</span>
+                            <input type="text" id="editItemCategory" name="Catagory" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="closeEditItemModalBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Quantity Modal -->
+    <div id="updateQuantityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Quantity</h3>
+                <button type="button" class="close" id="closeUpdateQuantityModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="updateQuantityForm">
+                    <div class="form-group">
+                        <label for="updateItemName">Name</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">label</span>
+                            <input type="text" id="updateItemName" name="name" class="form-control" style="padding-left: 40px;" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateItemTag">Tag ID</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">qr_code</span>
+                            <input type="text" id="updateItemTag" name="tag" class="form-control" style="padding-left: 40px;" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateItemQuantity">New Quantity</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">inventory</span>
+                            <input type="number" id="updateItemQuantity" name="quantity" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="closeUpdateQuantityModalBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/userinfo.js"></script>
+    <script src="/js/toggle.js"></script>
+    
+<script>
+    const ws = new WebSocket('ws://localhost:3000');
+
+    ws.onopen = () => {
+        console.log('WebSocket connection established');
+    };
+
+    ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+
+        if (message.event === 'itemCreated') {
+            // Open the modal with the received data
+            const item = message.data.item; // Assuming the item data is in message.data.item
+            openWebSocketModal(item);
+        } else if (message.event === 'updateItem') {
+            // Open the update quantity modal with the received data
+            const item = message.data.item;
+            openUpdateQuantityModal(item);
+        }
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket connection closed');
+    };
+
+    // Open WebSocket Modal
+    function openWebSocketModal(item) {
+        const editItemModal = document.getElementById('editItemModal');
+        document.getElementById('editItemName').value = item.name || '';
+        document.getElementById('editItemTag').value = item.tag || '';
+        document.getElementById('editItemQuantity').value = item.quantity || '';
+        document.getElementById('editItemCategory').value = item.Catagory || '';
+        editItemModal.style.display = 'flex';
+    }
+
+    // Fix for close buttons
+    document.getElementById('closeAddItemModal').addEventListener('click', () => {
+        document.getElementById('addItemModal').style.display = 'none';
+    });
+    
+    document.getElementById('closeAddItemModalBtn').addEventListener('click', () => {
+        document.getElementById('addItemModal').style.display = 'none';
+    });
+
+    document.getElementById('closeEditItemModal').addEventListener('click', () => {
+        document.getElementById('editItemModal').style.display = 'none';
+    });
+
+    document.getElementById('closeEditItemModalBtn').addEventListener('click', () => {
+        document.getElementById('editItemModal').style.display = 'none';
+    });
+
+    document.getElementById('closeUpdateQuantityModal').addEventListener('click', () => {
+        document.getElementById('updateQuantityModal').style.display = 'none';
+    });
+
+    document.getElementById('closeUpdateQuantityModalBtn').addEventListener('click', () => {
+        document.getElementById('updateQuantityModal').style.display = 'none';
+    });
+
+    // Open Add Item Modal
+    document.getElementById('openAddItemModal').addEventListener('click', () => {
+        document.getElementById('addItemModal').style.display = 'flex';
+    });
+
+    // Handle Edit Form Submission
+    const editItemForm = document.getElementById('editItemForm');
+    editItemForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(editItemForm);
+        const data = {
+            name: formData.get('name'),
+            tag: formData.get('tag'),
+            quantity: formData.get('quantity'),
+            Catagory: formData.get('Catagory')
+        };
+
+        try {
+            const response = await fetch('/updateitem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(error.error || 'Failed to update item');
+                return;
+            }
+
+            alert('Item updated successfully!');
+            document.getElementById('editItemModal').style.display = 'none';
+            window.location.reload(); // Refresh the entire page
+        } catch (error) {
+            console.error('Error updating item:', error);
+            alert('Error updating item. Please try again.');
+        }
+    });
+
+    // Add Item Form Submission 
+    const addItemForm = document.getElementById('addItemForm');
+    addItemForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(addItemForm);
+        const data = {
+            tag: formData.get('tag')
+        };
+
+        try {
+            const response = await fetch('/createitem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(error.error || 'Failed to add item');
+                return;
+            }
+
+            alert('Item added successfully!');
+            document.getElementById('addItemModal').style.display = 'none';
+            window.location.reload();
+        } catch (error) {
+            console.error('Error adding item:', error);
+            alert('Error adding item. Please try again.');
+        }
+    });
+
+    // Update Quantity Form Submission
+    const updateQuantityForm = document.getElementById('updateQuantityForm');
+    updateQuantityForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(updateQuantityForm);
+        const data = {
+            tag: formData.get('tag'),
+            quantity: formData.get('quantity')
+        };
+
+        try {
+            const response = await fetch('/updateitemquantity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(error.error || 'Failed to update quantity');
+                return;
+            }
+
+            alert('Quantity updated successfully!');
+            document.getElementById('updateQuantityModal').style.display = 'none';
+            window.location.reload();
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            alert('Error updating quantity. Please try again.');
+        }
+    });
+
+    // Fetch inventory items function
+    async function fetchInventoryItems() {
+        try {
+            const response = await fetch('/getallitems');
+            if (!response.ok) {
+                throw new Error('Failed to fetch inventory items');
+            }
+
+            const items = await response.json();
+            const tableBody = document.getElementById('inventoryTableBody');
+            const noItemsRow = document.getElementById('noItemsRow');
+
+            // Clear the table body
+            tableBody.innerHTML = '';
+
+            if (items.length === 0) {
+                // Show "No items" row if no items are found
+                tableBody.appendChild(noItemsRow);
+                return;
+            }
+
+            // Populate the table with items
+            items.forEach((item) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item._id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.tag}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.Catagory}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-small btn-outline btn-edit">
+                            <span class="material-icons-round">edit</span>
+                        </button>
+                        <button class="btn btn-small btn-outline btn-update-quantity">
+                            <span class="material-icons-round">inventory</span>
+                        </button>
+                        <button class="btn btn-small btn-outline btn-delete" data-tag="${item.tag}">
+                            <span class="material-icons-round">delete</span>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Re-attach event listeners for buttons
+            attachEditListeners();
+            attachUpdateQuantityListeners();
+            attachDeleteListeners();
+        } catch (error) {
+            console.error('Error fetching inventory items:', error);
+        }
+    }
+
+    // Attach Edit Event Listeners
+    function attachEditListeners() {
+        const editButtons = document.querySelectorAll('.btn-edit');
+        editButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const row = event.target.closest('tr');
+                const item = {
+                    name: row.children[1].textContent,
+                    tag: row.children[2].textContent,
+                    quantity: row.children[3].textContent,
+                    Catagory: row.children[4].textContent
+                };
+                openEditModal(item);
+            });
+        });
+    }
+
+    // Attach Update Quantity Event Listeners
+    function attachUpdateQuantityListeners() {
+        const updateButtons = document.querySelectorAll('.btn-update-quantity');
+        updateButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const row = event.target.closest('tr');
+                const item = {
+                    name: row.children[1].textContent,
+                    tag: row.children[2].textContent,
+                    quantity: row.children[3].textContent
+                };
+                openUpdateQuantityModal(item);
+            });
+        });
+    }
+
+    // Attach Delete Event Listeners
+    function attachDeleteListeners() {
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const tag = event.target.closest('.btn-delete').getAttribute('data-tag');
+                if (!tag) return;
+                
+                const confirmDelete = confirm(`Are you sure you want to delete the item with Tag ID: ${tag}?`);
+                
+                if (confirmDelete) {
+                    try {
+                        const response = await fetch('/deleteitem', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ tag })
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            alert(error.error || 'Failed to delete item');
+                            return;
+                        }
+
+                        alert('Item deleted successfully!');
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Error deleting item:', error);
+                        alert('Error deleting item. Please try again.');
+                    }
+                }
+            });
+        });
+    }
+
+    // Open Edit Modal
+    function openEditModal(item) {
+        const editItemModal = document.getElementById('editItemModal');
+        document.getElementById('editItemName').value = item.name || '';
+        document.getElementById('editItemTag').value = item.tag || '';
+        document.getElementById('editItemQuantity').value = item.quantity || '';
+        document.getElementById('editItemCategory').value = item.Catagory || '';
+        editItemModal.style.display = 'flex';
+    }
+
+    // Open Update Quantity Modal
+    function openUpdateQuantityModal(item) {
+        const updateQuantityModal = document.getElementById('updateQuantityModal');
+        document.getElementById('updateItemName').value = item.name || '';
+        document.getElementById('updateItemTag').value = item.tag || '';
+        document.getElementById('updateItemQuantity').value = item.quantity || '';
+        updateQuantityModal.style.display = 'flex';
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchInventoryItems();
+    });
+</script>
+</body>
+</html>

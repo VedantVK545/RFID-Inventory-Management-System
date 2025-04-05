@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+</head>
+<body>
+<div class="dashboard">
+    <button class="menu-toggle" id="menuToggle">
+        <span class="material-icons-round">menu</span>
+    </button>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>RFID Inventory</h3>
+            <p id="username">Loading...</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="/" class="menu-item">
+                <span class="material-icons-round">dashboard</span> Dashboard
+            </a>
+            
+            <a href="/inventory" class="menu-item">
+                <span class="material-icons-round">inventory_2</span> Inventory
+            </a>
+            
+            <a href="/rfid" class="menu-item">
+                <span class="material-icons-round">rss_feed</span> RFID Devices
+            </a>
+            
+            <a href="/receiptlogs" class="menu-item">
+                <span class="material-icons-round">receipt_long</span> Transactions
+            </a>
+            
+            <a href="/usercores" class="menu-item active">
+                <span class="material-icons-round">group</span> Users
+            </a>
+            
+            <a href="/userlogs" class="menu-item">
+                <span class="material-icons-round">visibility</span> Activity Logs
+            </a>
+            
+            <a href="logout" class="menu-item">
+                <span class="material-icons-round">logout</span> Logout
+            </a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">User Management</h1>
+            <div class="breadcrumb">
+                <div class="breadcrumb-item"><a href="/">Home</a></div>
+                <div class="breadcrumb-item">Users</div>
+            </div>
+        </div>
+    
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">System Users</h2>
+                <button id="openCreateUserModal" class="btn btn-primary">
+                    <span class="material-icons-round">person_add</span>
+                    Add User
+                </button>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div style="overflow-x: auto;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Rows will be dynamically populated here -->
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2rem;">
+                                    <span class="material-icons-round" style="font-size: 3rem; color: var(--text-tertiary); display: block; margin-bottom: 1rem;">group</span>
+                                    Loading users...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="createUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New User</h3>
+                <button type="button" class="close" id="closeCreateUserModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">person</span>
+                            <input type="text" id="username" name="username" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">email</span>
+                            <input type="email" id="email" name="email" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div style="position: relative;">
+                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">lock</span>
+                            <input type="password" id="password" name="password" class="form-control" style="padding-left: 40px;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" name="role" class="form-control" required>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelCreateUserModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/js/userinfo.js"></script>
+<script src="/js/toggle.js"></script>
+<script>
+    // Fetch users from the /getallusrs endpoint
+    async function fetchUsers() {
+        try {
+            const response = await fetch('/getallusrs');
+            if (!response.ok) {
+                throw new Error('Failed to fetch users');
+            }
+            const users = await response.json();
+
+            // Populate the table
+            const tableBody = document.getElementById('userTableBody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            if (users.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem;">
+                            <span class="material-icons-round" style="font-size: 3rem; color: var(--text-tertiary); display: block; margin-bottom: 1rem;">group_off</span>
+                            No users found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const created = new Date(user.created).toLocaleDateString();
+                
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                    <td>${created}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-small btn-outline delete-user-btn" data-username="${user.username}">
+                            <span class="material-icons-round">delete</span>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Attach event listeners to delete buttons
+            attachDeleteListeners();
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            const tableBody = document.getElementById('userTableBody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--danger-color);">
+                        <span class="material-icons-round" style="font-size: 3rem; display: block; margin-bottom: 1rem;">error</span>
+                        Error loading users.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    // Attach delete button event listeners
+    function attachDeleteListeners() {
+        const deleteButtons = document.querySelectorAll('.delete-user-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const username = event.currentTarget.getAttribute('data-username');
+                if (!username) return;
+
+                if (confirm(`Are you sure you want to delete the user "${username}"?`)) {
+                    try {
+                        const response = await fetch('/deleteuser', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ username })
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            alert(error.error || 'Failed to delete user');
+                            return;
+                        }
+
+                        alert('User deleted successfully!');
+                        fetchUsers(); // Refresh the user list
+                    } catch (error) {
+                        console.error('Error deleting user:', error);
+                        alert('Error deleting user. Please try again.');
+                    }
+                }
+            });
+        });
+    }
+
+    // Modal Functionality
+    const openCreateUserModal = document.getElementById('openCreateUserModal');
+    const closeCreateUserModal = document.getElementById('closeCreateUserModal');
+    const cancelCreateUserModal = document.getElementById('cancelCreateUserModal');
+    const createUserModal = document.getElementById('createUserModal');
+
+    openCreateUserModal.addEventListener('click', () => {
+        createUserModal.style.display = 'flex';
+    });
+
+    function closeModal() {
+        createUserModal.style.display = 'none';
+    }
+
+    closeCreateUserModal.addEventListener('click', closeModal);
+    cancelCreateUserModal.addEventListener('click', closeModal);
+
+    // Handle form submission
+    const createUserForm = document.getElementById('createUserForm');
+    createUserForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(createUserForm);
+        const data = {
+            username: formData.get('username'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+            role: formData.get('role')
+        };
+
+        try {
+            const response = await fetch('/createuser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(error.error || 'Failed to create user');
+                return;
+            }
+
+            alert('User created successfully!');
+            closeModal();
+            createUserForm.reset();
+            fetchUsers(); // Refresh the user list
+        } catch (error) {
+            console.error('Error creating user:', error);
+            alert('Error creating user. Please try again.');
+        }
+    });
+
+    // Call fetchUsers when the page loads
+    document.addEventListener('DOMContentLoaded', fetchUsers);
+</script>
+</html>

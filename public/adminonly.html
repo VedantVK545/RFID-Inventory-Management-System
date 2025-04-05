@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>403 - Page Not Found</title>
+  </head>
+  <body>
+    <div id="app">
+        <div class="error-container">
+            <h1 class="error-code">403</h1>
+            <p class="error-message">Admin  Access Only.</p>
+            <button class="home-button" onclick="window.location.href='/'">Return Home</button>
+          </div>
+    </div>
+    
+      <div class="stars"></div>
+  </body>
+  <style>
+    :root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  background-color: #13151a;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at bottom, #2d1b35 0%, #090a0f 100%);
+  overflow: hidden;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-container {
+  position: relative;
+  z-index: 1;
+}
+
+.error-code {
+  font-size: 150px;
+  margin: 0;
+  font-weight: 900;
+  letter-spacing: 20px;
+  background: linear-gradient(45deg, #9b4dca, #6b0f9c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 2px 2px 10px rgba(155, 77, 202, 0.3);
+}
+
+.error-message {
+  font-size: 24px;
+  margin: 20px 0;
+  color: #fff;
+}
+
+.home-button {
+  background: linear-gradient(45deg, #9b4dca, #6b0f9c);
+  border: none;
+  padding: 15px 30px;
+  border-radius: 30px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.home-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(155, 77, 202, 0.3);
+}
+
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  background: #e2c4ff;
+  border-radius: 50%;
+  animation: twinkle var(--duration) infinite;
+}
+
+@keyframes twinkle {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    background-color: #ffffff;
+    color: #213547;
+  }
+}
+  </style>
+  <script>
+function createStars() {
+  const starsContainer = document.querySelector('.stars')
+  const numberOfStars = 200
+
+  for (let i = 0; i < numberOfStars; i++) {
+    const star = document.createElement('div')
+    star.className = 'star'
+    
+    // Random position
+    const x = Math.random() * 100
+    const y = Math.random() * 100
+    
+    // Random size
+    const size = Math.random() * 3
+    
+    // Random twinkle duration
+    const duration = 2 + Math.random() * 3
+    
+    star.style.cssText = `
+      left: ${x}%;
+      top: ${y}%;
+      width: ${size}px;
+      height: ${size}px;
+      --duration: ${duration}s;
+    `
+    
+    starsContainer.appendChild(star)
+  }
+}
+
+// Initialize stars
+createStars()
+  </script>
+</html>
