@@ -34,5 +34,18 @@ router.get('/login', (req, res) => {
 router.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname + '/../public/register.html'));
 });
+router.get('/forgot-password', (req, res) => {
+    res.sendFile(path.join(__dirname + '/../public/forgot-password.html'));
+});
+
+// Fix the reset confirmation route path
+router.get('/reset-confirmation', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/reset-confirmation.html'));
+});
+
+// Fix the reset password route path to accept token parameter
+router.get('/reset/:token', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/reset-password.html'));
+});
 
 module.exports = router;

@@ -3,23 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POST Request Example</title>
+    <title>RFID Device Control Panel</title>
+    <style>
+        label {
+            font-size: 16px;
+            color: #ffffff;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input {
+            padding: 8px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 10px;
+            background-color: #ccc;
+        }
+        .status-active {
+            background-color: #4CAF50;
+            box-shadow: 0 0 8px #4CAF50;
+        }
+        .sync-controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        body{
+            background-color: #242424;
+        }
+        body h1{
+            color: #ffffff;
+        }
+        body h2 {
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body>
-    <h1>Send POST Request</h1>
-    <button id="sendRequest">Send Request</button>
+    <div class="container">
+        <h1>RFID Device Control Panel</h1>
+        <div class="input-group">
+            <label for="tagInput">Tag:</label>
+            <input type="text" id="tagInput">
+            <button id="generateTag">Generate Random Tag</button>
+        </div>
+        <button id="sendRequest">Send Request</button>
+
+        <div class="sync-controls">
+            <h2>Device Sync Status <span class="status-indicator" id="syncStatus"></span></h2>
+            <button id="startSync">Start Sync</button>
+            <button id="stopSync" style="background-color: #f44336;">Stop Sync</button>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('sendRequest').addEventListener('click', async () => {
+        function generateRandomTag(length = 6) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        document.getElementById('tagInput').value = generateRandomTag();
+
+        document.getElementById('generateTag').addEventListener('click', () => {
+            document.getElementById('tagInput').value = generateRandomTag();
+        });
+
+        // Device configuration
+        const deviceId = '67f0fa5f2168e4a6703f662b';
+        const apiKey = 'API-KEY-fd049672fc56c1c3'; // Replace with your actual API key from the modal
+        const apiUrl = 'https://rfid.mysticfox.dev'; // Replace with your actual API URL
+        let syncInterval = null;
+        const statusIndicator = document.getElementById('syncStatus');
+
+        async function updateDeviceSync() {
             try {
-                const response = await fetch('http://localhost:3000/createitemx', {
+                const response = await fetch(`${apiUrl}/updatesync/${deviceId}`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                console.log('Sync updated successfully');
+            } catch (error) {
+                console.error('Error updating device sync:', error);
+                statusIndicator.classList.remove('status-active');
+                clearInterval(syncInterval);
+                syncInterval = null;
+                alert('Device authentication failed. Please check your API key.');
+            }
+        }
+
+        document.getElementById('sendRequest').addEventListener('click', async () => {
+            try {
+                const tagValue = document.getElementById('tagInput').value;
+                const response = await fetch(`${apiUrl}/createitemx`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({ 
-                        tag: 10, 
-                        performedBy: 'device' // Include performedBy field
+                        tag: tagValue, 
+                        performedBy: 'device'
                     })
                 });
 
@@ -29,11 +153,28 @@
                     alert('Request successful!');
                 } else {
                     console.error('Error:', response.statusText);
-                    alert('Request failed!');
+                    alert('Request failed! Please check your API key.');
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred!');
+            }
+        });
+
+        document.getElementById('startSync').addEventListener('click', () => {
+            if (!syncInterval) {
+                syncInterval = setInterval(updateDeviceSync, 5000);
+                statusIndicator.classList.add('status-active');
+                console.log('Device sync started');
+            }
+        });
+
+        document.getElementById('stopSync').addEventListener('click', () => {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+                statusIndicator.classList.remove('status-active');
+                console.log('Device sync stopped');
             }
         });
     </script>

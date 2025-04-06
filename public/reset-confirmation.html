@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Email Sent - RFID Inventory System</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <style>
+        .auth-card {
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .check-icon {
+            font-size: 4rem;
+            color: var(--success-color);
+            margin-bottom: 1rem;
+        }
+        .message {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="blob-container">
+        <div class="blob"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
+    </div>
+    
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <span class="material-icons-round check-icon">mark_email_read</span>
+                <h2>Check Your Email</h2>
+                <p class="message">We've sent a password reset link to your email address. Please check your inbox and spam folder.</p>
+            </div>
+
+            <div class="form-footer">
+                <p style="margin-top: 1rem;">Didn't receive the email? <a href="/forgot-password">Try again</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

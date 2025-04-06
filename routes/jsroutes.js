@@ -13,5 +13,7 @@ router.get("/js/toggle.js", (req, res) => {
 router.get("/js/blob-animation.js", (req, res) => {
   res.sendFile(path.join(__dirname + "/../public/js/blob-animation.js"));
 });
-
+router.get("/js/ai-chatbot.js", (req, res) => {
+  res.sendFile(path.join(__dirname + "/../public/js/ai-chatbot.js"));
+});
 module.exports = router;

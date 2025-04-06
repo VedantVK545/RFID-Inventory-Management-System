@@ -1,0 +1,143 @@
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    background: #0f172a !important;
+  }
+  
+  /* Card mica effects */
+  .card, .stat-card, .action-card, .sidebar, .modal-content {
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+  
+.chat-widget {
+position: fixed;
+bottom: 20px;
+right: 20px;
+width: 350px;
+
+border-radius: 8px;
+overflow: hidden;
+
+z-index: 1000;
+}
+
+.chat-header {
+background: #100e24;
+border: #374151 solid  1px;
+color: #fff;
+padding: 15px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+}
+
+.chat-header .status {
+display: flex;
+align-items: center;
+font-size: 16px;
+font-weight: bold;
+}
+
+.chat-header .status .status-indicator {
+width: 10px;
+height: 10px;
+background: #28a745;
+border-radius: 50%;
+margin-right: 8px;
+}
+
+.chat-header .dropdown-icon {
+font-size: 14px;
+}
+
+.chat-messages {
+display: none;
+background: #100e24;
+padding: 20px;
+max-height: 300px;
+overflow-y: auto;
+color: #fff;
+font-size: 14px;
+border-top: 1px solid #2a2d38;
+}
+
+.chat-messages.visible {
+display: block;
+}
+
+.chat-input {
+display: none;
+background: #0e051f;
+padding: 10px;
+border-top: 1px solid #2a2d38;
+}
+
+.chat-input.visible {
+display: flex;
+}
+
+.chat-input input {
+flex: 1;
+border: 1px solid #100e24;
+border-radius: 4px;
+padding: 8px;
+font-size: 14px;
+background: #0a0a0a;
+color: #fff;
+}
+
+.chat-input button {
+background: #9537d4;
+border: none;
+color: #fff;
+margin-left: 10px;
+padding: 8px 12px;
+border-radius: 4px;
+cursor: pointer;
+font-size: 14px;
+}
+
+.message {
+margin-bottom: 12px;
+}
+
+.message.bot {
+text-align: left;
+color: #a6adb5;
+}
+
+.message.user {
+text-align: right;
+color: #c4c8d0;
+}
+
+.message:first-child {
+margin-top: 10px;
+}
+
+.icon-container {
+display: flex;
+gap: 10px;
+align-items: center;
+}
+
+.icon-container i {
+color: #fff;
+font-size: 20px;
+}
+
+.loading-icon {
+font-size: 18px;
+animation: spin 1s linear infinite;
+margin-left: 10px;
+}
+
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}

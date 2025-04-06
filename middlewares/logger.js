@@ -3,7 +3,20 @@ const requestIp = require('request-ip'); // Import the request-ip module
 
 async function logAction(req, res, next) {
     try {
-        if (req.originalUrl === '/favicon.ico'|| req.originalUrl === '/getallitems'|| req.originalUrl === '/getlogs' || req.originalUrl === '/exportinventory' ||req.originalUrl === '/getltrans' ||req.originalUrl === '/getalldevices' || req.originalUrl === '/getalldevices' || req.originalUrl === '/inventorylogs'|| req.originalUrl === '/login')  {
+
+        if (req.originalUrl === '/favicon.ico' || 
+            req.originalUrl === '/getallitems' || 
+            req.originalUrl === '/getlogs' || 
+            req.originalUrl === '/exportinventory' ||
+            req.originalUrl === '/getltrans' ||
+            req.originalUrl === '/getalldevices' || 
+            req.originalUrl === '/inventorylogs' || 
+            req.originalUrl === '/login' || 
+            req.originalUrl === '/logout' || 
+            req.originalUrl === '/getallusers' || 
+            req.originalUrl.startsWith('/updatesync')||
+            req.originalUrl.startsWith('/ask-ai'))
+        {
             return next();
         }
         if (req.originalUrl.startsWith('/')) {
@@ -21,12 +34,13 @@ async function logAction(req, res, next) {
             }
 
             const logEntry = new Log({
-                user: req.session?.username || 'RFID Device', // Log the username or 'Guest' if not logged in
-                action: `${req.method} ${req.originalUrl}`, // Log the HTTP method and URL
-                ipAddress: ipAddress, // Log the IP address of the requester
-                timestamp: new Date(), // Add a timestamp for the log entry
-                requestBody: req.body || {}, // Log the request body for POST/PUT requests
+                user: req.device ? 'RFID Device' : (req.session?.username || 'Guest'),
+                action: `${req.method} ${req.originalUrl}`, 
+                ipAddress: ipAddress,
+                timestamp: new Date(),
+                requestBody: req.body || {},
             });
+
             await logEntry.save();
         }
     } catch (err) {

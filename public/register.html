@@ -190,6 +190,9 @@
         overflow: hidden;
         z-index: 1;
         transition: all 0.4s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .btn-primary::before {
@@ -214,13 +217,17 @@
       }
 
       .register-icon {
-        margin-right: 8px;
+        margin-right: -6px;
         transition: transform 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
       }
-
-      .btn-primary:hover .register-icon {
+      .btn-primary:hover .login-icon {
         transform: translateX(3px);
       }
+
 
       .brand-logo {
         font-size: 3rem;

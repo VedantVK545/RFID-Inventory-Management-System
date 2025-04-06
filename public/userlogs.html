@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Activity Logs</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/ai-style.css">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.1/css/all.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
 </head>
 <body>
@@ -98,6 +100,26 @@
             </div>
         </div>
     </div>
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header" onclick="toggleChatWidget()">
+            <div class="status icon-container">
+                <span class="status-indicator"></span>
+                <i class="fa-solid fa-robot"></i>
+                AI Support
+            </div>
+            <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot"><i class="fa-solid fa-comment"></i> Send a message to start the chat!</div>
+        </div>
+        <div class="chat-input" id="chatInputContainer">
+            <input type="text" id="chatInput" placeholder="Ask something...">
+            <button onclick="sendMessage()">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    <script src="/js/ai-chatbot.js"></script>
 </body>
 <script src="/js/userinfo.js"></script>
 <script src="/js/toggle.js"></script>

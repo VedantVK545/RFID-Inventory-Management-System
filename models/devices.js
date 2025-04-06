@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-    name: { type: String, unique: true },
-    location: { type: String, unique: true },
-    status: String,
-    LastSync: { type: String, default: 'NILL' },
-    created: { type: Date, default: Date.now },
+const deviceSchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true },
+    location: { type: String },
+    status: { type: String, enum: ['active', 'inactive'], default: 'inactive' },
+    apiKey: { type: String, required: true },
+    LastSync: { type: Date, default: Date.now }
 });
-module.exports = mongoose.model('Devices', userSchema);
+
+module.exports = mongoose.model('Device', deviceSchema);

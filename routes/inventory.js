@@ -1,18 +1,14 @@
 module.exports = (wss) => {
     const express = require('express');
     const WebSocket = require('ws');
-    const { isAuthenticated, isAdmin } = require('../middlewares/auth');
+    const { isAuthenticated, isAdmin, isRFID } = require('../middlewares/auth');
     const logAction = require('../middlewares/logger');
     const fs = require('fs');
     const path = require('path');
     const router = express.Router();
     const Inventory = require('../models/inventory');
     const TransactionLog = require('../models/inventorylogs');
-
-    // Apply the logAction middleware to all inventory routes
-    router.use(logAction);
-
-    router.get('/getallitems', isAuthenticated, async (req, res) => {
+    router.get('/getallitems', isAuthenticated, logAction, async (req, res) => {
         try {
             const items = await Inventory.collection.find({}, { projection: { name: 1, tag: 1, quantity: 1, Catagory: 1, created: 1 } }).toArray();
             res.json(items);
@@ -21,7 +17,7 @@ module.exports = (wss) => {
             res.status(500).json({ error: 'Internal server error' });
         }
     });
-    router.post('/createitem', isAuthenticated, async (req, res) => {
+    router.post('/createitem', isAuthenticated, logAction, async (req, res) => {
         const { tag, quantity } = req.body;
         let adjustedQuantity = quantity > 0 ? quantity : 1;
     
@@ -43,7 +39,7 @@ module.exports = (wss) => {
                 return res.json({ message: 'Item quantity updated successfully', item: existingItem });
             }
     
-            const newItem = new Inventory({ tag, quantity: adjustedQuantity });
+            const newItem = new Inventory({ tag, quantity: adjustedQuantity, name: `Item-${Date.now()}`, Catagory: req.body.Catagory || 'Not yet setup' });
             await newItem.save();
     
             // Log the transaction
@@ -61,31 +57,114 @@ module.exports = (wss) => {
             res.status(500).json({ error: 'Internal server error' });
         }
     });
-    router.post('/createitemx', async (req, res) => {
-        const { tag, quantity } = req.body;
+    router.post('/createitemx', isRFID, logAction, async (req, res) => {
+        const { tag, quantity, name, Catagory } = req.body;
         let adjustedQuantity = quantity > 0 ? quantity : 1;
 
         try {
             const existingItem = await Inventory.findOne({ tag });
             if (existingItem) {
+                // Send update confirmation for existing items
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            event: 'confirmItemUpdate',
+                            data: {
+                                tag,
+                                quantity: adjustedQuantity,          // New quantity to add
+                                currentQuantity: existingItem.quantity || 0, // Make sure we send current quantity
+                                existingItem: {
+                                    ...existingItem._doc,            // Spread existing item data
+                                    currentQuantity: existingItem.quantity || 0  // Add current quantity explicitly
+                                }
+                            }
+                        }));
+                    }
+                });
+                return res.json({ 
+                    message: 'Confirmation request sent',
+                    data: { 
+                        tag, 
+                        quantity: adjustedQuantity, 
+                        currentQuantity: existingItem.quantity || 0,
+                        existingItem: {
+                            ...existingItem._doc,
+                            currentQuantity: existingItem.quantity || 0
+                        }
+                    }
+                });
+            }
+
+            // Only send create confirmation for new items
+            const newItemData = {
+                tag,
+                quantity: adjustedQuantity,
+                name: name || `Item-${Date.now()}`,
+                Catagory: Catagory || 'Not yet setup'
+            };
+
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        event: 'confirmItemCreate',
+                        data: newItemData
+                    }));
+                }
+            });
+            return res.json({ 
+                message: 'Confirmation request sent',
+                data: newItemData
+            });
+
+        } catch (err) {
+            console.error('Error processing item:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    });
+
+    router.post('/confirmitemx', isAuthenticated, logAction, async (req, res) => {
+        const { tag, quantity, name, Catagory, confirmed } = req.body;
+        
+        if (!confirmed) {
+            // If not confirmed, notify clients and return
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        event: 'operationCancelled',
+                        data: { message: 'Operation cancelled by user' }
+                    }));
+                }
+            });
+            return res.json({ message: 'Operation cancelled' });
+        }
+
+        try {
+            let adjustedQuantity = quantity > 0 ? quantity : 1;
+            const existingItem = await Inventory.findOne({ tag });
+            
+            if (existingItem) {
+                // Update existing item logic...
                 existingItem.quantity = (existingItem.quantity || 0) + adjustedQuantity;
                 await existingItem.save();
 
-                // Log the transaction
                 await TransactionLog.create({
                     action: 'add',
                     itemName: existingItem.name,
                     itemTag: existingItem.tag,
                     quantity: adjustedQuantity,
-                    performedBy: req.session.username || 'RFID Device', // Default to 'Unknown' if username is not available
+                    performedBy: req.session.username || 'RFID Device',
                 });
 
-                // Notify WebSocket clients with 'updateItem' event
+                // Notify clients of successful update
                 wss.clients.forEach((client) => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({
                             event: 'updateItem',
-                            data: { message: 'Item quantity updated', item: existingItem }
+                            data: { 
+                                message: 'Item quantity updated', 
+                                item: existingItem,
+                                confirmed: true
+                            }
                         }));
                     }
                 });
@@ -93,7 +172,13 @@ module.exports = (wss) => {
                 return res.json({ message: 'Item quantity updated successfully', item: existingItem });
             }
 
-            const newItem = new Inventory({ tag, quantity: adjustedQuantity });
+            // Create new item with the provided name and category
+            const newItem = new Inventory({ 
+                tag, 
+                quantity: adjustedQuantity,
+                name: name || `Item-${Date.now()}`,      // Use provided name or generate default
+                Catagory: Catagory || 'Not yet setup'    // Use provided category or default
+            });
             await newItem.save();
 
             // Log the transaction
@@ -102,27 +187,32 @@ module.exports = (wss) => {
                 itemName: newItem.name,
                 itemTag: newItem.tag,
                 quantity: adjustedQuantity,
-                performedBy: req.session.username || 'RFID Device', 
+                performedBy: req.session.username || 'RFID Device',
             });
 
-            // Notify WebSocket clients with 'itemCreated' event
+            // Notify clients of successful creation
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({
                         event: 'itemCreated',
-                        data: { message: 'New item created', item: newItem }
+                        data: { 
+                            message: 'New item created', 
+                            item: newItem,
+                            confirmed: true
+                        }
                     }));
                 }
             });
 
-            res.json({ message: 'Item created successfully', item: newItem });
+            return res.json({ message: 'Item created successfully', item: newItem });
+
         } catch (err) {
             console.error('Error creating or updating item:', err);
             res.status(500).json({ error: 'Internal server error' });
         }
     });
 
-    router.post('/deleteitem', isAuthenticated, isAdmin, async (req, res) => {
+    router.post('/deleteitem', isAuthenticated, isAdmin, logAction, async (req, res) => {
         const { name, tag } = req.body;
 
         try {
@@ -149,7 +239,7 @@ module.exports = (wss) => {
         }
     });
 
-    router.post('/updateitem', isAuthenticated, async (req, res) => {
+    router.post('/updateitem', isAuthenticated, logAction,async (req, res) => {
         const { name, tag, quantity, Catagory } = req.body;
 
         try {
@@ -191,7 +281,7 @@ module.exports = (wss) => {
         }
     });
 
-    router.post('/updateitemquantity', isAuthenticated, async (req, res) => {
+    router.post('/updateitemquantity', isAuthenticated, logAction,async (req, res) => {
         const { tag, quantity } = req.body;
 
         try {
@@ -230,23 +320,8 @@ module.exports = (wss) => {
         }
     });
 
-    router.get('/createdummyitems', isAuthenticated, isAdmin, async (req, res) => {
-        try {
-            const dummyItems = [
-                { name: 'Item1', tag: 'Tag1', quantity: 10, Catagory: 'Category1' },
-                { name: 'Item2', tag: 'Tag2', quantity: 20, Catagory: 'Category2' },
-                { name: 'Item3', tag: 'Tag3', quantity: 30, Catagory: 'Category3' },
-            ];
 
-            await Inventory.insertMany(dummyItems);
-            res.json({ message: 'Dummy items created successfully' });
-        } catch (err) {
-            console.error('Error creating dummy items:', err);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    });
-
-    router.get('/exportinventory', isAuthenticated, async (req, res) => {
+    router.get('/exportinventory', isAuthenticated,logAction, async (req, res) => {
         try {
             // Correct the projection syntax
             const items = await Inventory.find({}, 'name tag quantity Catagory created');

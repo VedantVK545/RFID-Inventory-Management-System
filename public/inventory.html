@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/ai-style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
-    <title>Inventory Management</title>
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.1/css/all.css">
+    <title>Inventory</title>
 </head>
 <body>
     <div class="dashboard">
@@ -35,7 +37,6 @@
                 <a href="/receiptlogs" class="menu-item">
                     <span class="material-icons-round">receipt_long</span> Transactions
                 </a>
-                
                 <a href="/usercores" class="menu-item">
                     <span class="material-icons-round">group</span> Users
                 </a>
@@ -44,12 +45,12 @@
                     <span class="material-icons-round">visibility</span> Activity Logs
                 </a>
                 
+                
                 <a href="logout" class="menu-item">
                     <span class="material-icons-round">logout</span> Logout
                 </a>
             </div>
         </div>
-    
     <div class="main-content">
         <div class="page-header">
             <h1 class="page-title">Inventory Management</h1>
@@ -59,186 +60,588 @@
             </div>
         </div>
     
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Inventory Items</h2>
-                <div>
-                    <button id="openAddItemModal" class="btn btn-primary">
-                        <span class="material-icons-round">add</span>
-                        Add New Item
-                    </button>
-                    <a href="/exportinventory" class="btn btn-outline">
-                        <span class="material-icons-round">download</span>
-                        Export
-                    </a>
-                </div>
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h2 style="margin-bottom: 1rem; color: var(--text-primary);">Inventory Items</h2>
+            
+            <div style="overflow-x: auto;">
+                <table class="table" style="width: 100%;" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Tag ID</th>
+                            <th>Quantity</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem;" id="noItemsRow">
+                                <span class="material-icons-round" style="font-size: 3rem; color: var(--text-tertiary); display: block; margin-bottom: 1rem;">inventory</span>
+                                No inventory items found. Add your first item below.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="card-body" style="padding: 0;">
-                <div style="overflow-x: auto;">
-                    <table class="table" id="inventoryTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Tag ID</th>
-                                <th>Quantity</th>
-                                <th>Category</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventoryTableBody">
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 2rem;" id="noItemsRow">
-                                    <span class="material-icons-round" style="font-size: 3rem; color: var(--text-tertiary); display: block; margin-bottom: 1rem;">inventory_2</span>
-                                    No inventory items found. Add your first item using the button above.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button id="openAddItemModal" class="btn btn-primary" style="display: inline-flex; align-items: center;">
+                    <span class="material-icons-round" style="margin-right: 8px;">add</span>
+                    Add New Item
+                </button>
+                <a href="/exportinventory" class="btn btn-outline" style="display: inline-flex; align-items: center;">
+                    <span class="material-icons-round" style="margin-right: 8px;">upload_file</span>
+                    Export Items
+                </a>
             </div>
         </div>
-    </div>
-    
-    <!-- Add Item Modal -->
-    <div id="addItemModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div id="addItemModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+            <div class="modal-content" style="background: #2a2a2a; padding: 1.5rem; border-radius: 8px; width: 400px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);">
                 <h3>Add New Item</h3>
-                <button type="button" class="close" id="closeAddItemModal">&times;</button>
-            </div>
-            <div class="modal-body">
                 <form id="addItemForm">
-                    <div class="form-group">
-                        <label for="itemTag">Tag ID</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">qr_code</span>
-                            <input type="text" id="itemTag" name="tag" class="form-control" style="padding-left: 40px;" required>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="itemTag" style="display: block; margin-bottom: 0.5rem;">Tag ID</label>
+                        <input type="text" id="itemTag" name="tag" required style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px;">
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline" id="closeAddItemModalBtn">Cancel</button>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <button type="button" id="closeAddItemModal" class="btn btn-secondary">Cancel</button>
                         <button type="submit" class="btn btn-primary">Add Item</button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-
-    <!-- Edit Item Modal -->
-    <div id="editItemModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div id="editItemModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+            <div class="modal-content" style="background: #2a2a2a; padding: 1.5rem; border-radius: 8px; width: 400px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);">
                 <h3>Edit Item</h3>
-                <button type="button" class="close" id="closeEditItemModal">&times;</button>
-            </div>
-            <div class="modal-body">
                 <form id="editItemForm">
-                    <div class="form-group">
-                        <label for="editItemName">Name</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">label</span>
-                            <input type="text" id="editItemName" name="name" class="form-control" style="padding-left: 40px;" required>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="editItemName" style="display: block; margin-bottom: 0.5rem;">Name</label>
+                        <input type="text" id="editItemName" name="name" required style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px;">
                     </div>
-                    <div class="form-group">
-                        <label for="editItemTag">Tag ID</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">qr_code</span>
-                            <input type="text" id="editItemTag" name="tag" class="form-control" style="padding-left: 40px;" required>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="editItemTag" style="display: block; margin-bottom: 0.5rem;">Tag ID</label>
+                        <input type="text" id="editItemTag" name="tag" required style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px;">
                     </div>
-                    <div class="form-group">
-                        <label for="editItemQuantity">Quantity</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">inventory</span>
-                            <input type="number" id="editItemQuantity" name="quantity" class="form-control" style="padding-left: 40px;" required>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="editItemQuantity" style="display: block; margin-bottom: 0.5rem;">Quantity</label>
+                        <input type="number" id="editItemQuantity" name="quantity" required style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px;">
                     </div>
-                    <div class="form-group">
-                        <label for="editItemCategory">Category</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">category</span>
-                            <input type="text" id="editItemCategory" name="Catagory" class="form-control" style="padding-left: 40px;" required>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="editItemCategory" style="display: block; margin-bottom: 0.5rem;">Category</label>
+                        <select id="editItemCategory" name="Catagory" required style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px; background-color: #2a2a2a; color: #fff;">
+                            <option value="Not yet setup">Select Category</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Office Supplies">Office Supplies</option>
+                            <option value="Furniture">Furniture</option>
+                            <option value="Tools">Tools</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Consumables">Consumables</option>
+                            <option value="Raw Materials">Raw Materials</option>
+                            <option value="Finished Goods">Finished Goods</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline" id="closeEditItemModalBtn">Cancel</button>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <button type="button" id="closeEditItemModal" class="btn btn-secondary">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-
-    <!-- Update Quantity Modal -->
-    <div id="updateQuantityModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div id="updateQuantityModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+            <div class="modal-content" style="background: #2a2a2a; padding: 1.5rem; border-radius: 8px; width: 400px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);">
                 <h3>Update Quantity</h3>
-                <button type="button" class="close" id="closeUpdateQuantityModal">&times;</button>
-            </div>
-            <div class="modal-body">
                 <form id="updateQuantityForm">
-                    <div class="form-group">
-                        <label for="updateItemName">Name</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">label</span>
-                            <input type="text" id="updateItemName" name="name" class="form-control" style="padding-left: 40px;" readonly>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="updateItemName" style="display: block; margin-bottom: 0.5rem;">Name</label>
+                        <input type="text" id="updateItemName" name="name" readonly style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px;">
                     </div>
-                    <div class="form-group">
-                        <label for="updateItemTag">Tag ID</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">qr_code</span>
-                            <input type="text" id="updateItemTag" name="tag" class="form-control" style="padding-left: 40px;" readonly>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="updateItemTag" style="display: block; margin-bottom: 0.5rem;">Tag ID</label>
+                        <input type="text" id="updateItemTag" name="tag" readonly style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px;">
                     </div>
-                    <div class="form-group">
-                        <label for="updateItemQuantity">New Quantity</label>
-                        <div style="position: relative;">
-                            <span class="material-icons-round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">inventory</span>
-                            <input type="number" id="updateItemQuantity" name="quantity" class="form-control" style="padding-left: 40px;" required>
-                        </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="updateItemQuantity" style="display: block; margin-bottom: 0.5rem;">Added Quantity</label>
+                        <input type="number" id="updateItemQuantity" name="quantity" required style="width: 100%; padding: 0.5rem; border: 1px solid #535353; border-radius: 4px;">
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline" id="closeUpdateQuantityModalBtn">Cancel</button>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <button type="button" id="closeUpdateQuantityModal" class="btn btn-secondary">Cancel</button>
                         <button type="submit" class="btn btn-primary">Update</button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-    
-    <script src="/js/userinfo.js"></script>
-    <script src="/js/toggle.js"></script>
-    
+        <div class="chat-widget" id="chatWidget">
+            <div class="chat-header" onclick="toggleChatWidget()">
+                <div class="status icon-container">
+                    <span class="status-indicator"></span>
+                    <i class="fa-solid fa-robot"></i>
+                    AI Support
+                </div>
+                <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot"><i class="fa-solid fa-comment"></i> Send a message to start the chat!</div>
+            </div>
+            <div class="chat-input" id="chatInputContainer">
+                <input type="text" id="chatInput" placeholder="Ask something...">
+                <button onclick="sendMessage()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        <script src="/js/ai-chatbot.js"></script>
+        <script>
+            // Fetch inventory items and populate the table
+            async function fetchInventoryItems() {
+                try {
+                    const response = await fetch('/getallitems'); // Adjust the endpoint if necessary
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch inventory items');
+                    }
+        
+                    const items = await response.json();
+                    const tableBody = document.getElementById('inventoryTableBody');
+                    const noItemsRow = document.getElementById('noItemsRow');
+        
+                    // Clear the table body
+                    tableBody.innerHTML = '';
+        
+                    if (items.length === 0) {
+                        // Show "No items" row if no items are found
+                        tableBody.appendChild(noItemsRow);
+                        return;
+                    }
+        
+                    // Populate the table with items
+                    items.forEach((item) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item._id}</td>
+                            <td>${item.name}</td>
+                            <td>${item.tag}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.Catagory}</td>
+                            <td>
+                                <button class="btn btn-small btn-edit btn btn-icon btn-small btn-outline">
+                                <span class="material-icons-round">edit</span>
+                                </button>
+                                <button class="btn btn-small btn-update-quantity material-symbols-outlined btn btn-icon btn-small btn-outline">
+                                <span class="material-icons-round">update</span>
+                                </button>
+                                <button class="btn btn-small btn-delete btn btn-icon btn-small btn-outline" id= 'button-del' data-tag="${item.tag}">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Re-attach event listeners for edit buttons
+                    attachEditListeners();
+                    attachUpdateQuantityListeners();
+                    attachDeleteListeners();
+                } catch (error) {
+                    console.error('Error fetching inventory items:', error);
+                }
+            }
+
+            // Open Add Item Modal
+            const openAddItemModal = document.getElementById('openAddItemModal');
+            const addItemModal = document.getElementById('addItemModal');
+            const closeAddItemModal = document.getElementById('closeAddItemModal');
+            const addItemForm = document.getElementById('addItemForm');
+
+            openAddItemModal.addEventListener('click', () => {
+                addItemModal.style.display = 'flex';
+            });
+
+            closeAddItemModal.addEventListener('click', () => {
+                addItemModal.style.display = 'none';
+            });
+
+            // Update the Add Item Form submission handler
+            addItemForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(addItemForm);
+                const data = {
+                    tag: formData.get('tag'),
+                    quantity: 1,  // Add default quantity
+                    name: '',     // Add empty name
+                    Catagory: '' // Add empty category
+                };
+
+                try {
+                    const response = await fetch('/createitem', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        alert(error.error || 'Failed to add item');
+                        return;
+                    }
+
+                    alert('Item added successfully!');
+                    addItemModal.style.display = 'none';
+                    addItemForm.reset(); // Reset the form
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Error adding item:', error);
+                    alert('Error adding item. Please try again.');
+                }
+            });
+
+            // Attach Edit Event Listeners
+            function attachEditListeners() {
+                const tableBody = document.getElementById('inventoryTableBody');
+                const editButtons = tableBody.querySelectorAll('.btn-edit');
+                
+                editButtons.forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        // Stop event bubbling
+                        event.stopPropagation();
+                        
+                        // Get the closest tr element
+                        const row = button.closest('tr');
+                        if (!row) return;
+
+                        // Create item object from row data
+                        const item = {
+                            name: row.cells[1].textContent,
+                            tag: row.cells[2].textContent,
+                            quantity: row.cells[3].textContent,
+                            Catagory: row.cells[4].textContent
+                        };
+
+                        // Open edit modal with item data
+                        const editItemModal = document.getElementById('editItemModal');
+                        document.getElementById('editItemName').value = item.name;
+                        document.getElementById('editItemTag').value = item.tag;
+                        document.getElementById('editItemQuantity').value = item.quantity;
+                        document.getElementById('editItemCategory').value = item.Catagory;
+                        editItemModal.style.display = 'flex';
+                    });
+                });
+            }
+
+            // Attach Update Quantity Event Listeners
+            function attachUpdateQuantityListeners() {
+                const tableBody = document.getElementById('inventoryTableBody');
+
+                // Remove existing event listeners by replacing the table body
+                const newTableBody = tableBody.cloneNode(true);
+                tableBody.parentNode.replaceChild(newTableBody, tableBody);
+
+                const updateButtons = newTableBody.querySelectorAll('.btn-update-quantity');
+                updateButtons.forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const row = event.target.closest('tr');
+                        const item = {
+                            name: row.children[1].textContent,
+                            tag: row.children[2].textContent,
+                            quantity: row.children[3].textContent,
+                        };
+                        openUpdateQuantityModal(item);
+                    });
+                });
+            }
+
+            // Attach Delete Event Listeners
+            function attachDeleteListeners() {
+                const deleteButtons = document.querySelectorAll('.btn-delete');
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', async (event) => {
+                        console.log('Delete button clicked!');
+                        const tag = event.target.getAttribute('data-tag');
+                        const confirmDelete = confirm(`Are you sure you want to delete the item with Tag ID: ${tag}?`);
+                        
+                        if (confirmDelete) {
+                            try {
+                                const response = await fetch('/deleteitem', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ tag })
+                                });
+
+                                if (!response.ok) {
+                                    const error = await response.json();
+                                    alert(error.error || 'Failed to delete item');
+                                    return;
+                                }
+
+                                alert('Item deleted successfully!');
+                                window.location.reload();
+                            } catch (error) {
+                                console.error('Error deleting item:', error);
+                                alert('Error deleting item. Please try again.');
+                            }
+                        }
+                    });
+                });
+            }
+
+            function openUpdateQuantityModal(item) {
+                const updateQuantityModal = document.getElementById('updateQuantityModal');
+                document.getElementById('updateItemName').value = item.name || '';
+                document.getElementById('updateItemTag').value = item.tag || '';
+                document.getElementById('updateItemQuantity').value = item.quantity || '';
+                updateQuantityModal.style.display = 'flex';
+            }
+
+            // Close Update Quantity Modal
+            const closeUpdateQuantityModal = document.getElementById('closeUpdateQuantityModal');
+            closeUpdateQuantityModal.addEventListener('click', () => {
+                const updateQuantityModal = document.getElementById('updateQuantityModal');
+                updateQuantityModal.style.display = 'none';
+            });
+
+            // Handle Update Quantity Form Submission
+            const updateQuantityForm = document.getElementById('updateQuantityForm');
+            updateQuantityForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(updateQuantityForm);
+                const data = {
+                    tag: formData.get('tag'),
+                    quantity: formData.get('quantity'),
+                };
+
+                try {
+                    const response = await fetch('/updateitemquantity', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        alert(error.error || 'Failed to update item quantity');
+                        return;
+                    }
+
+                    alert('Item quantity updated successfully!');
+                    const updateQuantityModal = document.getElementById('updateQuantityModal');
+                    updateQuantityModal.style.display = 'none';
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Error updating item quantity:', error);
+                    alert('Error updating item quantity. Please try again.');
+                }
+            });
+        </script>
+<script src="/js/userinfo.js"></script>
+<script src="/js/toggle.js"></script>
 <script>
-    const ws = new WebSocket('ws://localhost:3000');
-
-    ws.onopen = () => {
-        console.log('WebSocket connection established');
-    };
-
-    ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-
-        if (message.event === 'itemCreated') {
-            // Open the modal with the received data
-            const item = message.data.item; // Assuming the item data is in message.data.item
-            openWebSocketModal(item);
-        } else if (message.event === 'updateItem') {
-            // Open the update quantity modal with the received data
-            const item = message.data.item;
-            openUpdateQuantityModal(item);
+    // WebSocket connection handler
+    class WebSocketHandler {
+        constructor() {
+            this.ws = null;
+            this.reconnectAttempts = 0;
+            this.maxReconnectAttempts = 5;
+            this.reconnectDelay = 5000; // 5 seconds
+            this.connect();
         }
-    };
 
-    ws.onclose = () => {
-        console.log('WebSocket connection closed');
-    };
+        connect() {
+            try {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.host;
+                const wsUrl = `${protocol}//${host}`;
 
-    // Open WebSocket Modal
+                console.log(`Attempting to connect to WebSocket at ${wsUrl}`);
+                this.ws = new WebSocket(wsUrl);
+
+                this.ws.onopen = () => {
+                    console.log('WebSocket connection established');
+                    this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+                };
+
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+
+                this.ws.onclose = (event) => {
+                    console.log(`WebSocket connection closed. Code: ${event.code}, Reason: ${event.reason}`);
+                    
+                    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                        this.reconnectAttempts++;
+                        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+                        setTimeout(() => this.connect(), this.reconnectDelay);
+                    } else {
+                        console.error('Max reconnection attempts reached. Please refresh the page.');
+                    }
+                };
+
+                // Update the WebSocket message handler cases for both create and update
+                this.ws.onmessage = async (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+    
+                        
+                        switch(message.event) {
+                            case 'confirmItemCreate':
+                                console.log('Received confirmItemCreate event with data:', message.data);
+                                const editModal = document.getElementById('editItemModal');
+                                
+                                // Remove existing event listeners by cloning the form
+                                const editForm = document.getElementById('editItemForm');
+                                const newEditForm = editForm.cloneNode(true);
+                                editForm.parentNode.replaceChild(newEditForm, editForm);
+                                
+                                // Populate the edit modal with the data received
+                                document.getElementById('editItemTag').value = message.data.tag || '';
+                                document.getElementById('editItemQuantity').value = message.data.quantity || 1;
+                                document.getElementById('editItemName').value = message.data.name || '';
+                                document.getElementById('editItemCategory').value = message.data.Catagory || 'Not yet setup';
+                                
+                                editModal.style.display = 'flex';
+
+                                // Handle cancel button for create modal
+                                const cancelButton = document.getElementById('closeEditItemModal');
+                                cancelButton.onclick = () => {
+                                    editModal.style.display = 'none';
+                                    fetch('/confirmitemx', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            tag: message.data.tag,
+                                            confirmed: false
+                                        })
+                                    }).catch(error => console.error('Error sending cancellation:', error));
+                                };
+
+                                // Handle form submission
+                                newEditForm.onsubmit = async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                        const formData = new FormData(newEditForm);
+                                        const response = await fetch('/confirmitemx', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({
+                                                tag: formData.get('tag'),
+                                                name: formData.get('name') || `Item-${Date.now()}`,
+                                                quantity: parseInt(formData.get('quantity')) || 1,
+                                                Catagory: formData.get('Catagory') || 'Not yet setup',
+                                                confirmed: true
+                                            })
+                                        });
+
+                                        if (!response.ok) {
+                                            const errorData = await response.json();
+                                            throw new Error(errorData.error || 'Failed to confirm item creation');
+                                        }
+                                        
+                                        editModal.style.display = 'none';
+                                        window.location.reload();
+                                    } catch (error) {
+                                        console.error('Error confirming item creation:', error);
+                                        alert('Error confirming item creation. Please try again.');
+                                    }
+                                };
+                                break;
+
+                            case 'confirmItemUpdate':
+                                console.log('Received confirmItemUpdate event');
+                                const updateModal = document.getElementById('updateQuantityModal');
+                                
+                                // Populate update modal
+                                document.getElementById('updateItemTag').value = message.data.tag;
+                                document.getElementById('updateItemName').value = message.data.existingItem.name;
+                                document.getElementById('updateItemQuantity').value = message.data.quantity;
+                                updateModal.style.display = 'flex';
+
+                                // Handle cancel button for update modal
+                                const closeUpdateBtn = document.getElementById('closeUpdateQuantityModal');
+                                closeUpdateBtn.onclick = () => {
+                                    updateModal.style.display = 'none';
+                                    fetch('/confirmitemx', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            tag: message.data.tag,
+                                            confirmed: false
+                                        })
+                                    }).catch(error => console.error('Error sending cancellation:', error));
+                                };
+
+                                // Handle form submission
+                                const updateForm = document.getElementById('updateQuantityForm');
+                                updateForm.onsubmit = async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                        const formData = new FormData(updateForm);
+                                        const response = await fetch('/confirmitemx', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({
+                                                tag: formData.get('tag'),
+                                                quantity: parseInt(formData.get('quantity')),
+                                                confirmed: true
+                                            })
+                                        });
+
+                                        if (!response.ok) throw new Error('Failed to confirm item update');
+                                        updateModal.style.display = 'none';
+                                        window.location.reload();
+                                    } catch (error) {
+                                        console.error('Error confirming item update:', error);
+                                        alert('Error confirming item update. Please try again.');
+                                    }
+                                };
+                                break;
+
+                            case 'itemCreated':
+                            case 'updateItem':
+                                // Only reload if not coming from a confirmation
+                                if (!message.data.confirmed) {
+                                    window.location.reload();
+                                }
+                                break;
+
+                            default:
+                                console.log('Received unknown message event:', message.event);
+                        }
+                    } catch (error) {
+                        console.error('Error handling WebSocket message:', error);
+                    }
+                };
+            } catch (error) {
+                console.error('Error creating WebSocket connection:', error);
+            }
+        }
+
+        send(data) {
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify(data));
+            } else {
+                console.error('WebSocket is not connected. Message not sent:', data);
+            }
+        }
+    }
+
+    // Initialize WebSocket connection
+    const wsHandler = new WebSocketHandler();
+
+    // Keep the existing openWebSocketModal function
     function openWebSocketModal(item) {
         const editItemModal = document.getElementById('editItemModal');
         document.getElementById('editItemName').value = item.name || '';
@@ -248,42 +651,19 @@
         editItemModal.style.display = 'flex';
     }
 
-    // Fix for close buttons
-    document.getElementById('closeAddItemModal').addEventListener('click', () => {
-        document.getElementById('addItemModal').style.display = 'none';
-    });
-    
-    document.getElementById('closeAddItemModalBtn').addEventListener('click', () => {
-        document.getElementById('addItemModal').style.display = 'none';
-    });
-
-    document.getElementById('closeEditItemModal').addEventListener('click', () => {
-        document.getElementById('editItemModal').style.display = 'none';
-    });
-
-    document.getElementById('closeEditItemModalBtn').addEventListener('click', () => {
-        document.getElementById('editItemModal').style.display = 'none';
-    });
-
-    document.getElementById('closeUpdateQuantityModal').addEventListener('click', () => {
-        document.getElementById('updateQuantityModal').style.display = 'none';
-    });
-
-    document.getElementById('closeUpdateQuantityModalBtn').addEventListener('click', () => {
-        document.getElementById('updateQuantityModal').style.display = 'none';
-    });
-
-    // Open Add Item Modal
-    document.getElementById('openAddItemModal').addEventListener('click', () => {
-        document.getElementById('addItemModal').style.display = 'flex';
+    // Close Edit Modal
+    const closeEditItemModalx = document.getElementById('closeEditItemModal');
+    closeEditItemModalx.addEventListener('click', () => {
+        const editItemModal = document.getElementById('editItemModal');
+        editItemModal.style.display = 'none';
     });
 
     // Handle Edit Form Submission
-    const editItemForm = document.getElementById('editItemForm');
-    editItemForm.addEventListener('submit', async (event) => {
+    const editItemFormx = document.getElementById('editItemForm');
+    editItemFormx.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const formData = new FormData(editItemForm);
+        const formData = new FormData(editItemFormx);
         const data = {
             name: formData.get('name'),
             tag: formData.get('tag'),
@@ -307,136 +687,32 @@
             }
 
             alert('Item updated successfully!');
-            document.getElementById('editItemModal').style.display = 'none';
-            window.location.reload(); // Refresh the entire page
+            const editItemModal = document.getElementById('editItemModal');
+            editItemModal.style.display = 'none';
+            fetchInventoryItems(); // Refresh the inventory table
         } catch (error) {
             console.error('Error updating item:', error);
             alert('Error updating item. Please try again.');
         }
     });
+            const editItemModal = document.getElementById('editItemModal');
+    const closeEditItemModal = document.getElementById('closeEditItemModal');
+    const editItemForm = document.getElementById('editItemForm');
+    let currentEditItem = null;
 
-    // Add Item Form Submission 
-    const addItemForm = document.getElementById('addItemForm');
-    addItemForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const formData = new FormData(addItemForm);
-        const data = {
-            tag: formData.get('tag')
-        };
-
-        try {
-            const response = await fetch('/createitem', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                alert(error.error || 'Failed to add item');
-                return;
-            }
-
-            alert('Item added successfully!');
-            document.getElementById('addItemModal').style.display = 'none';
-            window.location.reload();
-        } catch (error) {
-            console.error('Error adding item:', error);
-            alert('Error adding item. Please try again.');
-        }
-    });
-
-    // Update Quantity Form Submission
-    const updateQuantityForm = document.getElementById('updateQuantityForm');
-    updateQuantityForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const formData = new FormData(updateQuantityForm);
-        const data = {
-            tag: formData.get('tag'),
-            quantity: formData.get('quantity')
-        };
-
-        try {
-            const response = await fetch('/updateitemquantity', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                alert(error.error || 'Failed to update quantity');
-                return;
-            }
-
-            alert('Quantity updated successfully!');
-            document.getElementById('updateQuantityModal').style.display = 'none';
-            window.location.reload();
-        } catch (error) {
-            console.error('Error updating quantity:', error);
-            alert('Error updating quantity. Please try again.');
-        }
-    });
-
-    // Fetch inventory items function
-    async function fetchInventoryItems() {
-        try {
-            const response = await fetch('/getallitems');
-            if (!response.ok) {
-                throw new Error('Failed to fetch inventory items');
-            }
-
-            const items = await response.json();
-            const tableBody = document.getElementById('inventoryTableBody');
-            const noItemsRow = document.getElementById('noItemsRow');
-
-            // Clear the table body
-            tableBody.innerHTML = '';
-
-            if (items.length === 0) {
-                // Show "No items" row if no items are found
-                tableBody.appendChild(noItemsRow);
-                return;
-            }
-
-            // Populate the table with items
-            items.forEach((item) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item._id}</td>
-                    <td>${item.name}</td>
-                    <td>${item.tag}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.Catagory}</td>
-                    <td class="table-actions">
-                        <button class="btn btn-small btn-outline btn-edit">
-                            <span class="material-icons-round">edit</span>
-                        </button>
-                        <button class="btn btn-small btn-outline btn-update-quantity">
-                            <span class="material-icons-round">inventory</span>
-                        </button>
-                        <button class="btn btn-small btn-outline btn-delete" data-tag="${item.tag}">
-                            <span class="material-icons-round">delete</span>
-                        </button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            // Re-attach event listeners for buttons
-            attachEditListeners();
-            attachUpdateQuantityListeners();
-            attachDeleteListeners();
-        } catch (error) {
-            console.error('Error fetching inventory items:', error);
-        }
+    // Open Edit Modal
+    function openEditModal(item) {
+        currentEditItem = item;
+        document.getElementById('editItemName').value = item.name || '';
+        document.getElementById('editItemTag').value = item.tag || '';
+        document.getElementById('editItemQuantity').value = item.quantity || '';
+        document.getElementById('editItemCategory').value = item.Catagory || '';
+        editItemModal.style.display = 'flex';
     }
+
+    closeEditItemModal.addEventListener('click', () => {
+        editItemModal.style.display = 'none';
+    });
 
     // Attach Edit Event Listeners
     function attachEditListeners() {
@@ -455,82 +731,12 @@
         });
     }
 
-    // Attach Update Quantity Event Listeners
-    function attachUpdateQuantityListeners() {
-        const updateButtons = document.querySelectorAll('.btn-update-quantity');
-        updateButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                const row = event.target.closest('tr');
-                const item = {
-                    name: row.children[1].textContent,
-                    tag: row.children[2].textContent,
-                    quantity: row.children[3].textContent
-                };
-                openUpdateQuantityModal(item);
-            });
-        });
-    }
-
-    // Attach Delete Event Listeners
-    function attachDeleteListeners() {
-        const deleteButtons = document.querySelectorAll('.btn-delete');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const tag = event.target.closest('.btn-delete').getAttribute('data-tag');
-                if (!tag) return;
-                
-                const confirmDelete = confirm(`Are you sure you want to delete the item with Tag ID: ${tag}?`);
-                
-                if (confirmDelete) {
-                    try {
-                        const response = await fetch('/deleteitem', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ tag })
-                        });
-
-                        if (!response.ok) {
-                            const error = await response.json();
-                            alert(error.error || 'Failed to delete item');
-                            return;
-                        }
-
-                        alert('Item deleted successfully!');
-                        window.location.reload();
-                    } catch (error) {
-                        console.error('Error deleting item:', error);
-                        alert('Error deleting item. Please try again.');
-                    }
-                }
-            });
-        });
-    }
-
-    // Open Edit Modal
-    function openEditModal(item) {
-        const editItemModal = document.getElementById('editItemModal');
-        document.getElementById('editItemName').value = item.name || '';
-        document.getElementById('editItemTag').value = item.tag || '';
-        document.getElementById('editItemQuantity').value = item.quantity || '';
-        document.getElementById('editItemCategory').value = item.Catagory || '';
-        editItemModal.style.display = 'flex';
-    }
-
-    // Open Update Quantity Modal
-    function openUpdateQuantityModal(item) {
-        const updateQuantityModal = document.getElementById('updateQuantityModal');
-        document.getElementById('updateItemName').value = item.name || '';
-        document.getElementById('updateItemTag').value = item.tag || '';
-        document.getElementById('updateItemQuantity').value = item.quantity || '';
-        updateQuantityModal.style.display = 'flex';
-    }
-
-    // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
-        fetchInventoryItems();
+        fetchInventoryItems().then(() => {
+            attachEditListeners();
+        });
     });
+    
 </script>
 </body>
 </html>
